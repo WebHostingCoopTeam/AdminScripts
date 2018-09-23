@@ -13,7 +13,7 @@ DESIRED_FIRST=$1
 DESIRED_SECOND=$2
 DESIRED_THIRD=$3
 
-END_OF_RANGE=4
+END_OF_RANGE=256
 
 countzero=1
 while [ "$countzero" -lt "$END_OF_RANGE" ];
