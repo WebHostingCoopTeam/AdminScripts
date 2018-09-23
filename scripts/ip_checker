@@ -23,6 +23,19 @@ error_msg='Error'
 errored=0
 cpanel_string='If you are the owner of this website, please contact your hosting provider'
 
+check_for_cpanel_error () {
+  check_domain_for_cpanel=$1
+  regex_to_check=$2
+  slurpy=$(curl $check_domain_for_cpanel)
+  if [[ $slurpy =~ $regex_to_check ]]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
+main () {
+# no indent for main
 if   [[ $first_octet -eq $DESIRED_FIRST ]]; then
   #echo first good
   error_msg="$error_msg"
@@ -57,6 +70,11 @@ if [[ $DUGX =~ 'webhosting.coop' ]]; then
 else
   error_msg="$error_msg, not on coop ptr"
 fi
+cpanel_error=check_for_cpanel_error()
+if [ "$cpanel_error" -gt 0 ]; then
+  (( errored= cpanel_error + errored ))
+  error_msg="$error_msg, cpanel error"
+fi
 
 if [ "$errored" -gt 0 ]; then
     error_msg="$error_msg for $CHECK_DOMAIN -> $DUG ptr:$DUGX"
@@ -64,3 +82,6 @@ if [ "$errored" -gt 0 ]; then
     echo "$error_msg"
     exit 1
 fi
+}
+
+main $@
