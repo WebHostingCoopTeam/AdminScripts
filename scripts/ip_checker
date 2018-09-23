@@ -44,16 +44,23 @@ else
   error_msg="$error_msg, third octet $third_octet"
   ((++errored))
 fi
+if [[ -z "${DUG// }" ]]; then
+  DUGX=''
+  error_msg="$error_msg, no IP address returned"
+  ((++errored))
+else
+  DUGX=$(echo $DUG |tr ' ' '\n'|xargs -n1 -I% dig -x % +short)
+  DUGX=$(echo $DUGX |tr '\n' ',')
+fi
+if [[ $DUGX =~ 'webhosting.coop' ]]; then
+  errored=0
+else
+  error_msg="$error_msg, not on coop ptr"
+fi
 
 if [ "$errored" -gt 0 ]; then
-  if [[ -z "${DUG// }" ]]; then
-    DUGX=''
-  else
-    DUGX=$(echo $DUG |tr ' ' '\n'|xargs -n1 -I% dig -x % +short)
-    DUGX=$(echo $DUGX |tr '\n' ',')
-  fi
-  error_msg="$error_msg for $CHECK_DOMAIN -> $DUG ptr:$DUGX"
-  error_msg=$(echo $error_msg|tr '\n' ','|sed 's/,*$//')
-  echo "$error_msg"
-  exit 1
+    error_msg="$error_msg for $CHECK_DOMAIN -> $DUG ptr:$DUGX"
+    error_msg=$(echo $error_msg|tr '\n' ','|sed 's/,*$//')
+    echo "$error_msg"
+    exit 1
 fi
