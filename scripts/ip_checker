@@ -44,7 +44,11 @@ else
 fi
 
 if [ "$errored" -gt 0 ]; then
-  DUGX=$(dig -x $DUG +short|tr '\n' ',')
+  if [ -z $DUG ]; then
+    DUGX=$(dig -x $DUG +short|tr '\n' ',')
+  else
+    DUGX=''
+  fi
   error_msg="$error_msg for $CHECK_DOMAIN -> $DUG ptr:$DUGX"
   error_msg=$(echo $error_msg|tr '\n' ','|sed 's/,*$//')
   echo "$error_msg"
