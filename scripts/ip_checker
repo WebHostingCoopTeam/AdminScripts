@@ -6,6 +6,10 @@ if [ $# -ne 2 ]; then
   echo "$0 DOMAIN DESIRED_FIRST.DESIRED_SECOND.DESIRED_THIRD"
   echo 'e.g.'
   echo "$0 example.com 192.168.2"
+  echo '  ~example results~
+Error, no IP address returned for example.com -> not on coop ptr ptr:
+CPANEL Error, ip range 10.2.1 for example.org -> not on coop ptr 10.2.1.24 10.2.1.25 ptr:foobar.baz'
+
   exit 1
 fi
 
