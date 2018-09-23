@@ -23,20 +23,20 @@ if   [[ $first_octet -eq $DESIRED_FIRST ]]; then
   #echo first good
   error=0
 else
-  echo first octet bad
+  echo first octet bad for $CHECK_DOMAIN
   exit 1
 fi
 if [[ $second_octet -eq $DESIRED_SECOND ]]; then
   #echo second good
   error=0
 else
-  echo second octet bad
+  echo second octet bad for $CHECK_DOMAIN
   exit 1
 fi
 if [[ $third_octet -eq $DESIRED_THIRD ]]; then
   #echo third good
   error=0
 else
-  echo third octet bad
+  echo third octet bad for $CHECK_DOMAIN
   exit 1
 fi
