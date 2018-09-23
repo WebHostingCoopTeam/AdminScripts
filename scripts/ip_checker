@@ -29,7 +29,7 @@ check_for_cpanel_error () {
   slurpy=$(curl --silent -L $check_domain_for_cpanel)
   if [[ $slurpy =~ $regex_to_check ]]; then
     ((++errored))
-    error_msg="$error_msg, cpanel error"
+    error_msg="CPANEL $error_msg"
   fi
 }
 
