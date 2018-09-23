@@ -13,4 +13,4 @@ DESIRED_FIRST=$1
 DESIRED_SECOND=$2
 DESIRED_THIRD=$3
 
-cut -f1 -d: /etc/trueuserdomains|xargs -n1 -I% ./ip_checker $DESIRED_FIRST $DESIRED_SECOND $DESIRED_THIRD
+cut -f1 -d: /etc/trueuserdomains|xargs -n1 -I% ./ip_checker % $DESIRED_FIRST $DESIRED_SECOND $DESIRED_THIRD
