@@ -18,10 +18,10 @@ DESIRED_SECOND=$(echo $2|cut -f2 -d.)
 DESIRED_THIRD=$(echo $2|cut -f3 -d.)
 
 DUG=$(dig +short $CHECK_DOMAIN|tr '\n' ' ')
-first_octet=$(echo $DUG|cut -f1 -d.)
-second_octet=$(echo $DUG|cut -f2 -d.)
-third_octet=$(echo $DUG|cut -f3 -d.)
-fourth_octet=$(echo $DUG|cut -f4 -d.)
+first_octet=z
+second_octet=z
+third_octet=z
+fourth_octet=z
 error_msg='Error'
 errored=0
 cpanel_string='If you are the owner of this website, please contact your hosting provider'
@@ -44,42 +44,49 @@ check_for_cpanel_error () {
     error_msg="CPANEL $error_msg"
   fi
 }
+check_octets () {
+  first_octet=$(echo $DUG|cut -f1 -d.)
+  second_octet=$(echo $DUG|cut -f2 -d.)
+  third_octet=$(echo $DUG|cut -f3 -d.)
+  fourth_octet=$(echo $DUG|cut -f4 -d.)
+  if   [[ $first_octet -eq $DESIRED_FIRST ]]; then
+    first_octet=x
+  else
+    ((++errored))
+  fi
+  if [[ $second_octet -eq $DESIRED_SECOND ]]; then
+    second_octet=x
+  else
+    ((++errored))
+  fi
+  if [[ $third_octet -eq $DESIRED_THIRD ]]; then
+    third_octet=x
+  else
+    ((++errored))
+  fi
+}
 
 main () {
-# no indent for main
-if   [[ $first_octet -eq $DESIRED_FIRST ]]; then
-  first_octet=x
-else
-  ((++errored))
-fi
-if [[ $second_octet -eq $DESIRED_SECOND ]]; then
-  second_octet=x
-else
-  ((++errored))
-fi
-if [[ $third_octet -eq $DESIRED_THIRD ]]; then
-  third_octet=x
-else
-  ((++errored))
-fi
-if [[ -z "${DUG// }" ]]; then
-  DUGX=''
-  octets="no IP address returned"
-  ((++errored))
-else
-  octets="ip range $first_octet.$second_octet.$third_octet.x"
-  DUGX=$(echo $DUG |tr ' ' '\n'|xargs -n1 -I% dig -x % +short)
-  DUGX=$(echo "-> $check_coop_ptr ptr:$DUGX" |tr '\n' ',')
-  check_ptr $DUGX 'webhosting.coop'
-  check_for_cpanel_error $CHECK_DOMAIN $cpanel_string
-fi
 
-if [ "$errored" -gt 0 ]; then
-    error_msg="$error_msg, $octets for $CHECK_DOMAIN $DUG $DUGX"
-    error_msg=$(echo $error_msg|tr '\n' ','|sed 's/,*$//')
-    echo "$error_msg"
-    exit 1
-fi
+  if [[ -z "${DUG// }" ]]; then
+    DUGX=''
+    octets="no IP address returned"
+    ((++errored))
+  else
+    check_octets
+    octets="ip range $first_octet.$second_octet.$third_octet.x"
+    DUGX=$(echo $DUG |tr ' ' '\n'|xargs -n1 -I% dig -x % +short)
+    DUGX=$(echo "-> $check_coop_ptr ptr:$DUGX" |tr '\n' ',')
+    check_ptr $DUGX 'webhosting.coop'
+    check_for_cpanel_error $CHECK_DOMAIN $cpanel_string
+  fi
+
+  if [ "$errored" -gt 0 ]; then
+      error_msg="$error_msg, $octets for $CHECK_DOMAIN $DUG $DUGX"
+      error_msg=$(echo $error_msg|tr '\n' ','|sed 's/,*$//')
+      echo "$error_msg"
+      exit 1
+  fi
 }
 
 main $@
