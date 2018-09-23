@@ -14,4 +14,11 @@ DESIRED_SECOND=$(echo $1|cut -f2 -d.)
 DESIRED_THIRD=$(echo $1|cut -f3 -d.)
 : ${PARALLEL_JOBS=95}
 
-cut -f1 -d: /etc/trueuserdomains|parallel -j $PARALLEL_JOBS -n1 -I% ./ip_checker % ${DESIRED_FIRST}.${DESIRED_SECOND}.${DESIRED_THIRD}
+#cut -f1 -d: /etc/trueuserdomains|parallel -j $PARALLEL_JOBS -n1 -I% ./ip_checker % ${DESIRED_FIRST}.${DESIRED_SECOND}.${DESIRED_THIRD}
+cut -f1 -d: /etc/trueuserdomains \
+  |parallel -j $PARALLEL_JOBS \
+    -n1 \
+    -I% \
+    ./ip_tester \
+      --domain % \
+      --ip-segment ${DESIRED_FIRST}.${DESIRED_SECOND}.${DESIRED_THIRD}
