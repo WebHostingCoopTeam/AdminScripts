@@ -1,0 +1,21 @@
+#!/bin/bash
+if [ $# -ne 3 ]; then
+  # Print usage
+  echo 'Error! wrong number of arguments'
+  echo 'usage:'
+  echo "$0 DESIRED_FIRST DESIRED_SECOND DESIRED_THIRD"
+  echo 'e.g.'
+  echo "$0 192 168 2"
+  exit 1
+fi
+
+DESIRED_FIRST=$1
+DESIRED_SECOND=$2
+DESIRED_THIRD=$3
+
+countzero=1
+while [ "$countzero" -lt "256" ];
+do
+  dig -x +short ${DESIRED_FIRST}.${DESIRED_SECOND}.${DESIRED_THIRD}.${countzero}
+  ((++countzero))
+done
