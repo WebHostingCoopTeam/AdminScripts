@@ -7,8 +7,8 @@ if [ $# -ne 2 ]; then
   echo 'e.g.'
   echo "$0 example.com 192.168.2"
   echo '  ~example results~
-Error, no IP address returned for example.com -> not on coop ptr ptr:
-CPANEL Error, ip range 10.2.1.x for example.org -> not on coop ptr 10.2.1.24 10.2.1.25 ptr:foobar.baz'
+Error no IP address returned for example.com -> not on coop ptr ptr:
+CPANEL Error, ip 10.2.1.x for example.org -> not on coop ptr 10.2.1.24 10.2.1.25 ptr:foobar.baz'
   exit 1
 fi
 
@@ -69,20 +69,19 @@ check_octets () {
 main () {
 
   if [[ -z "${DUG// }" ]]; then
-    DUGX=''
-    octets="no IP address returned"
+    error_msg="$error_msg no IP address returned for ${CHECK_DOMAIN}"
     ((++errored))
   else
     check_octets
     check_ptr "$DUGX" 'webhosting.coop'
     check_for_cpanel_error $CHECK_DOMAIN $cpanel_string
-    octets="ip range $first_octet.$second_octet.$third_octet.x"
+    octets="$first_octet.$second_octet.$third_octet.x"
     DUGX=$(echo $DUG |tr ' ' '\n'|xargs -n1 -I% dig -x % +short)
-    DUGX=$(echo "-> prt: $DUGX $check_coop_ptr" |tr '\n' ',')
+    DUGX=$(echo "={ptr}> $DUGX $check_coop_ptr" |tr '\n' ',')
+    error_msg="$error_msg $octets ${CHECK_DOMAIN}->$DUG $DUGX"
   fi
 
   if [ "$errored" -gt 0 ]; then
-      error_msg="$error_msg, $octets for $CHECK_DOMAIN $DUG $DUGX"
       error_msg=$(echo $error_msg|tr '\n' ','|sed 's/,*$//')
       echo "$error_msg"
       exit 1
