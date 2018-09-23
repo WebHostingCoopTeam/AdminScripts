@@ -9,7 +9,6 @@ if [ $# -ne 2 ]; then
   echo '  ~example results~
 Error, no IP address returned for example.com -> not on coop ptr ptr:
 CPANEL Error, ip range 10.2.1 for example.org -> not on coop ptr 10.2.1.24 10.2.1.25 ptr:foobar.baz'
-
   exit 1
 fi
 
@@ -26,6 +25,15 @@ fourth_octet=$(echo $DUG|cut -f4 -d.)
 error_msg='Error'
 errored=0
 cpanel_string='If you are the owner of this website, please contact your hosting provider'
+check_coop_ptr=""
+
+check_ptr () {
+  if [[ $1 =~ $2 ]]; then
+    check_coop_ptr="$check_coop_ptr is on $2 ptr"
+  else
+    check_coop_ptr="$check_coop_ptr is not on $2 ptr"
+  fi
+}
 
 check_for_cpanel_error () {
   check_domain_for_cpanel=$1
@@ -59,20 +67,15 @@ if [[ -z "${DUG// }" ]]; then
   octets="no IP address returned"
   ((++errored))
 else
-  octets="ip range $first_octet.$second_octet.$third_octet"
+  octets="ip range $first_octet.$second_octet.$third_octet.x"
   DUGX=$(echo $DUG |tr ' ' '\n'|xargs -n1 -I% dig -x % +short)
-  DUGX=$(echo $DUGX |tr '\n' ',')
+  DUGX=$(echo "-> $check_coop_ptr ptr:$DUGX" |tr '\n' ',')
+  check_ptr $DUGX 'webhosting.coop'
+  check_for_cpanel_error $CHECK_DOMAIN $cpanel_string
 fi
-if [[ $DUGX =~ 'webhosting.coop' ]]; then
-  check_coop_ptr=""
-else
-  check_coop_ptr="not on coop ptr"
-fi
-
-check_for_cpanel_error $CHECK_DOMAIN $cpanel_string
 
 if [ "$errored" -gt 0 ]; then
-    error_msg="$error_msg, $octets for $CHECK_DOMAIN -> $check_coop_ptr $DUG ptr:$DUGX"
+    error_msg="$error_msg, $octets for $CHECK_DOMAIN $DUG $DUGX"
     error_msg=$(echo $error_msg|tr '\n' ','|sed 's/,*$//')
     echo "$error_msg"
     exit 1
