@@ -74,11 +74,11 @@ main () {
     ((++errored))
   else
     check_octets
-    octets="ip range $first_octet.$second_octet.$third_octet.x"
-    DUGX=$(echo $DUG |tr ' ' '\n'|xargs -n1 -I% dig -x % +short)
-    DUGX=$(echo "-> $check_coop_ptr ptr:$DUGX" |tr '\n' ',')
     check_ptr "$DUGX" 'webhosting.coop'
     check_for_cpanel_error $CHECK_DOMAIN $cpanel_string
+    octets="ip range $first_octet.$second_octet.$third_octet.x"
+    DUGX=$(echo $DUG |tr ' ' '\n'|xargs -n1 -I% dig -x % +short)
+    DUGX=$(echo "-> prt: $DUGX $check_coop_ptr" |tr '\n' ',')
   fi
 
   if [ "$errored" -gt 0 ]; then
