@@ -13,4 +13,4 @@ DESIRED_FIRST=$(echo $1|cut -f1 -d.)
 DESIRED_SECOND=$(echo $1|cut -f2 -d.)
 DESIRED_THIRD=$(echo $1|cut -f3 -d.)
 
-cut -f1 -d: /etc/trueuserdomains|xargs -n1 -I% ./ip_checker % ${DESIRED_FIRST}.${DESIRED_SECOND}.${DESIRED_THIRD}
+cut -f1 -d: /etc/trueuserdomains|parallel -j $PARALLEL_JOBS -n1 -I% ./ip_checker % ${DESIRED_FIRST}.${DESIRED_SECOND}.${DESIRED_THIRD}
