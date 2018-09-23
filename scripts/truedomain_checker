@@ -19,4 +19,4 @@ else
 THIS_TIME=time
 fi
 
-$THIS_TIME cut -f1 -d: /etc/trueuserdomains|parallel -j $PARALLEL_JOBS -n1 -I% $THIS_TIME ./ip_checker % ${DESIRED_FIRST}.${DESIRED_SECOND}.${DESIRED_THIRD}
+$THIS_TIME cut -f1 -d: /etc/trueuserdomains|parallel -j $PARALLEL_JOBS -n1 -I% ./ip_checker % ${DESIRED_FIRST}.${DESIRED_SECOND}.${DESIRED_THIRD}
