@@ -20,20 +20,23 @@ second_octet=$(echo $DUG|cut -f2 -d.)
 third_octet=$(echo $DUG|cut -f3 -d.)
 fourth_octet=$(echo $DUG|cut -f4 -d.)
 if   [[ $first_octet -eq $DESIRED_FIRST ]]; then
-  echo first good
+  #echo first good
+  error=0
 else
-  echo first bad
+  echo first octet bad
   exit 1
 fi
 if [[ $second_octet -eq $DESIRED_SECOND ]]; then
-  echo second good
+  #echo second good
+  error=0
 else
-  echo second bad
+  echo second octet bad
   exit 1
 fi
 if [[ $third_octet -eq $DESIRED_THIRD ]]; then
-  echo third good
+  #echo third good
+  error=0
 else
-  echo third bad
+  echo third octet bad
   exit 1
 fi
