@@ -44,7 +44,7 @@ else
 fi
 
 if [ "$errored" -gt 0 ]; then
-  if [[ -z "${DUG// }" ]]: then
+  if [[ -z "${DUG// }" ]]; then
     DUGX=$(dig -x $DUG +short|tr '\n' ',')
   else
     DUGX=''
