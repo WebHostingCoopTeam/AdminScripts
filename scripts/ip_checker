@@ -1,8 +1,19 @@
 #!/bin/bash
-: ${DESIRED_FIRST=4}
-: ${DESIRED_SECOND=30}
-: ${DESIRED_THIRD=111}
-: ${CHECK_DOMAIN=buyglassblunts.com}
+if [ $# -ne 4 ]; then
+  # Print usage
+  echo 'Error! wrong number of arguments'
+  echo 'usage:'
+  echo "$0 DOMAIN DESIRED_FIRST DESIRED_SECOND DESIRED_THIRD"
+  echo 'e.g.'
+  echo "$0 example.com 192 168 2"
+  exit 1
+fi
+
+CHECK_DOMAIN=$1
+DESIRED_FIRST=$2
+DESIRED_SECOND=$3
+DESIRED_THIRD=$4
+
 DUG=$(dig +short $CHECK_DOMAIN)
 first_octet=$(echo $DUG|cut -f1 -d.)
 second_octet=$(echo $DUG|cut -f2 -d.)
