@@ -73,6 +73,7 @@ main () {
     ((++errored))
   else
     check_octets
+    check_return_code
     check_ptr "$DUGX" 'webhosting.coop'
     check_for_cpanel_error $CHECK_DOMAIN $cpanel_string
     octets="$first_octet.$second_octet.$third_octet.x"

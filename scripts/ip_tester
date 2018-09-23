@@ -123,6 +123,14 @@ while true; do
   esac
 done
 
+check_return_code () {
+  return_code=$(curl -s -o /dev/null -w "%{http_code}" http://$1/)
+  if [ "$return_code" -eq 200 ]; then
+    error_msg="$return_code $error_msg"
+  else
+    error_msg="$return_code $error_msg"
+  fi
+}
 
 check_ptr () {
   ptr_domain_array=( $THIS_CHECK_PTR_DOMAINS )
@@ -144,9 +152,10 @@ check_for_cpanel_error () {
   slurpy=$(curl --silent -L $check_domain_for_cpanel)
   if [[ $slurpy =~ $regex_to_check ]]; then
     ((++errored))
-    error_msg="CPANEL $error_msg"
+    error_msg="CPANEL_ERR $error_msg"
   fi
 }
+
 check_octets () {
   first_octet=$(echo $DUG|cut -f1 -d.)
   second_octet=$(echo $DUG|cut -f2 -d.)
@@ -184,6 +193,7 @@ main () {
     THIS_CHECK_PTR_DOMAINS="$CHECK_PTR_DOMAINS $CHECK_DOMAIN"
     check_ptr "$DUGX"
     check_for_cpanel_error $CHECK_DOMAIN $cpanel_string
+    check_return_code $CHECK_DOMAIN
     octets="$first_octet.$second_octet.$third_octet.x"
     DUGX=$(echo $DUG |tr ' ' '\n'|xargs -n1 -I% dig -x % +short)
     if [ -z $check_ptr_error_dont_throw_error ]; then
