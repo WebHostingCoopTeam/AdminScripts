@@ -13,9 +13,11 @@ DESIRED_FIRST=$1
 DESIRED_SECOND=$2
 DESIRED_THIRD=$3
 
+END_OF_RANGE=4
+
 countzero=1
-while [ "$countzero" -lt "256" ];
+while [ "$countzero" -lt "$END_OF_RANGE" ];
 do
-  dig -x +short ${DESIRED_FIRST}.${DESIRED_SECOND}.${DESIRED_THIRD}.${countzero}
+  dig -x ${DESIRED_FIRST}.${DESIRED_SECOND}.${DESIRED_THIRD}.${countzero} +short
   ((++countzero))
 done
