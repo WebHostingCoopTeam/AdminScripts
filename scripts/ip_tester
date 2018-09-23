@@ -1,0 +1,204 @@
+#!/bin/bash
+IP_CHECKER_VERSION='v0.0.1a'
+: ${VERBOSITY:=0}
+: ${CHECK_PTR_DOMAINS='webhosting.coop'}
+: ${CHECK_DOMAIN='lynx.webhosting.coop'}
+: ${DESIRED_FIRST=4}
+: ${DESIRED_SECOND=30}
+: ${DESIRED_THIRD=111}
+error_msg='Error'
+errored=0
+cpanel_string='If you are the owner of this website, please contact your hosting provider'
+check_ptr_error=""
+first_octet=i
+second_octet=i
+third_octet=i
+fourth_octet=i
+check_ptr_error_dont_throw_error=0
+
+print_help () {
+  echo 'whc_ip_checker, by Josh Cox 2018.09.23'
+  echo ' usage:'
+  echo "   $0 DOMAIN DESIRED_FIRST.DESIRED_SECOND.DESIRED_THIRD"
+  echo ' e.g.'
+  echo "   $0 example.com 192.168.2"
+  echo '  ~example results~
+    Error no IP address returned for example.com -> not on coop ptr ptr:
+    CPANEL Error, ip 10.2.1.x for example.org -> not on coop ptr 10.2.1.24 10.2.1.25 ptr:foobar.baz
+  ~END -example results~'
+}
+
+squawk () {
+  # This function simplifies error reporting and verbosity
+  # call it by preceding your message with a verbosity level
+  # e.g. `squawk 3 "This is a squawk"`
+  # if the current verbosity level is greater than or equal to
+  # the number given then this function will echo out your message
+  # and pad it with # to let you now how verbose that message was
+  squawk_lvl=$1
+  shift
+  squawk=$1
+  shift
+  squawk_opt=$@
+
+  if [[ "$VERBOSITY" -ge "$squawk_lvl" ]] ; then
+  count_squawk=0
+    while [[ "$count_squawk" -lt "$squawk_lvl" ]]; do
+      echo -n "#"
+      count_squawk=`expr $count_squawk + 1`
+    done
+    echo " $squawk"
+  fi
+}
+
+set_verbosity () {
+  if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+    VERBOSITY=0
+  else
+    VERBOSITY=$1
+  fi
+  squawk 5 " verbosity is now $VERBOSITY"
+}
+
+increase_verbosity () {
+  ((++VERBOSITY))
+  squawk 5 " verbosity is now $VERBOSITY"
+}
+
+# Execute getopt on the arguments passed to this program, identified by the special character $@
+short_opts="c:hvp:d:"
+long_opts="version,domain:,ptr-domain:,ip-segment:,debug,help"
+PARSED_OPTIONS=$(getopt -n "$0" -o "$short_opts" --long "$long_opts" -- "$@")
+
+#Bad arguments, something has gone wrong with the getopt command.
+if [[ $? -ne 0 ]];
+then
+  horizontal_rule
+  echo 'bad argruments'
+  print_help
+  exit 1
+fi
+
+# A little magic, necessary when using getopt.
+eval set -- "$PARSED_OPTIONS"
+
+squawk 5 'loop through opts'
+
+opt_loop_count=1
+while true; do
+  squawk 5 "$opt_loop_count $@"
+  opt_loop_count=`expr $opt_loop_count + 1`
+  case "$1" in
+    -h|--help)
+      print_help
+      exit 1
+      shift;;
+    --debug)
+      debug=true
+      shift;;
+    --version)
+      echo "$0, version $IP_CHECKER_VERSION"
+      exit 0
+      shift;;
+    -p|--ptr-domain)
+      CHECK_PTR_DOMAINS="$2 $CHECK_PTR_DOMAINS"
+      shift 2 ;;
+    -d|--domain)
+      CHECK_DOMAIN=$2
+      shift 2 ;;
+    -v|--verbose)
+      increase_verbosity
+      shift;;
+    --verbosity)
+      set_verbosity $2
+      shift 2 ;;
+    --ip-segment)
+      DESIRED_FIRST=$(echo $2|cut -f1 -d.)
+      DESIRED_SECOND=$(echo $2|cut -f2 -d.)
+      DESIRED_THIRD=$(echo $2|cut -f3 -d.)
+      shift 2 ;;
+    --)
+      shift
+      break;;
+  esac
+done
+
+
+check_ptr () {
+  ptr_domain_array=( $THIS_CHECK_PTR_DOMAINS )
+  for i in "${ptr_domain_array[@]}"
+  do
+    this_regex="^.*$i"
+    if [[ $1 =~ $this_regex ]]; then
+      echo 'ptrdomain found'
+      ((++check_ptr_error_dont_throw_error))
+    else
+      check_ptr_error="$check_ptr_error, $1 not $i"
+    fi
+  done
+}
+
+check_for_cpanel_error () {
+  check_domain_for_cpanel=$1
+  regex_to_check=$2
+  slurpy=$(curl --silent -L $check_domain_for_cpanel)
+  if [[ $slurpy =~ $regex_to_check ]]; then
+    ((++errored))
+    error_msg="CPANEL $error_msg"
+  fi
+}
+check_octets () {
+  first_octet=$(echo $DUG|cut -f1 -d.)
+  second_octet=$(echo $DUG|cut -f2 -d.)
+  third_octet=$(echo $DUG|cut -f3 -d.)
+  fourth_octet=$(echo $DUG|cut -f4 -d.)
+  if   [[ $first_octet -eq $DESIRED_FIRST ]]; then
+    first_octet=x
+  else
+    ((++errored))
+  fi
+  if [[ $second_octet -eq $DESIRED_SECOND ]]; then
+    second_octet=x
+  else
+    ((++errored))
+  fi
+  if [[ $third_octet -eq $DESIRED_THIRD ]]; then
+    third_octet=x
+  else
+    ((++errored))
+  fi
+}
+
+main () {
+  DUG=$(dig +short $CHECK_DOMAIN|tr '\n' ' ')
+  first_octet=z
+  second_octet=z
+  third_octet=z
+  fourth_octet=z
+
+  if [[ -z "${DUG// }" ]]; then
+    error_msg="$error_msg no IP address returned for ${CHECK_DOMAIN}"
+    ((++errored))
+  else
+    check_octets
+    THIS_CHECK_PTR_DOMAINS="$CHECK_PTR_DOMAINS $CHECK_DOMAIN"
+    check_ptr "$DUGX"
+    check_for_cpanel_error $CHECK_DOMAIN $cpanel_string
+    octets="$first_octet.$second_octet.$third_octet.x"
+    DUGX=$(echo $DUG |tr ' ' '\n'|xargs -n1 -I% dig -x % +short)
+    if [ -z $check_ptr_error_dont_throw_error ]; then
+      DUGX=$(echo "={ptr}> $DUGX " |tr '\n' ',')
+    else
+      DUGX=$(echo "={ptr}> $DUGX $check_ptr_error" |tr '\n' ',')
+    fi
+    error_msg="$error_msg $octets ${CHECK_DOMAIN}->$DUG $DUGX"
+  fi
+
+  if [ "$errored" -gt 0 ]; then
+      error_msg=$(echo $error_msg|tr '\n' ','|sed 's/,*$//')
+      echo "$error_msg"
+      exit 1
+  fi
+}
+
+main $@
