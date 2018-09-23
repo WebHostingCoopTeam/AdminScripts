@@ -1,0 +1,28 @@
+#!/bin/bash
+: ${DESIRED_FIRST=4}
+: ${DESIRED_SECOND=30}
+: ${DESIRED_THIRD=111}
+: ${CHECK_DOMAIN=buyglassblunts.com}
+DUG=$(dig +short $CHECK_DOMAIN)
+first_octet=$(echo $DUG|cut -f1 -d.)
+second_octet=$(echo $DUG|cut -f2 -d.)
+third_octet=$(echo $DUG|cut -f3 -d.)
+fourth_octet=$(echo $DUG|cut -f4 -d.)
+if   [[ $first_octet -eq $DESIRED_FIRST ]]; then
+  echo first good
+else
+  echo first bad
+  exit 1
+fi
+if [[ $second_octet -eq $DESIRED_SECOND ]]; then
+  echo second good
+else
+  echo second bad
+  exit 1
+fi
+if [[ $third_octet -eq $DESIRED_THIRD ]]; then
+  echo third good
+else
+  echo third bad
+  exit 1
+fi
