@@ -1,42 +1,52 @@
 #!/bin/bash
-if [ $# -ne 4 ]; then
+if [ $# -ne 2 ]; then
   # Print usage
   echo 'Error! wrong number of arguments'
   echo 'usage:'
-  echo "$0 DOMAIN DESIRED_FIRST DESIRED_SECOND DESIRED_THIRD"
+  echo "$0 DOMAIN DESIRED_FIRST.DESIRED_SECOND.DESIRED_THIRD"
   echo 'e.g.'
-  echo "$0 example.com 192 168 2"
+  echo "$0 example.com 192.168.2"
   exit 1
 fi
 
 CHECK_DOMAIN=$1
-DESIRED_FIRST=$2
-DESIRED_SECOND=$3
-DESIRED_THIRD=$4
+DESIRED_FIRST=$(echo $2|cut -f1 -d.)
+DESIRED_SECOND=$(echo $2|cut -f2 -d.)
+DESIRED_THIRD=$(echo $2|cut -f3 -d.)
 
 DUG=$(dig +short $CHECK_DOMAIN)
 first_octet=$(echo $DUG|cut -f1 -d.)
 second_octet=$(echo $DUG|cut -f2 -d.)
 third_octet=$(echo $DUG|cut -f3 -d.)
 fourth_octet=$(echo $DUG|cut -f4 -d.)
+error_msg='Error'
+errored=0
 if   [[ $first_octet -eq $DESIRED_FIRST ]]; then
   #echo first good
-  error=0
+  error_msg="$error_msg"
 else
-  echo first octet $first_octet bad for $CHECK_DOMAIN $DUG
-  exit 1
+  error_msg="$error_msg first octet $first_octet"
+  ((++errored))
 fi
 if [[ $second_octet -eq $DESIRED_SECOND ]]; then
   #echo second good
-  error=0
+  error_msg="$error_msg"
 else
-  echo second octet $second_octet bad for $CHECK_DOMAIN $DUG
-  exit 1
+  error_msg="$error_msg, second octet $second_octet"
+  ((++errored))
 fi
 if [[ $third_octet -eq $DESIRED_THIRD ]]; then
   #echo third good
-  error=0
+  error_msg="$error_msg"
 else
-  echo third octet $third_octet bad for $CHECK_DOMAIN $DUG
+  error_msg="$error_msg, third octet $third_octet"
+  ((++errored))
+fi
+
+if [ "$errored" -gt 0 ]; then
+  DUGX=$(dig -x $DUG +short|tr '\n' ',')
+  error_msg="$error_msg for $CHECK_DOMAIN -> $DUG ptr:$DUGX"
+  error_msg=$(echo $error_msg|tr '\n' ','|sed 's/,*$//')
+  echo "$error_msg"
   exit 1
 fi
